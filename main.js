@@ -10,8 +10,8 @@ const camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.inner
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 const directionalLight = new THREE.DirectionalLight(0xfff5e1, 1, 200);
 const pointLight = new THREE.PointLight(0xfff5e1, 2, 200);
-  directionalLight.position.set(30, 25, -1).normalize(); 
-  pointLight.position.set(50, 50, 50).normalize(); 
+    directionalLight.position.set(30, 25, -1).normalize(); 
+    pointLight.position.set(50, 50, 50).normalize(); 
 scene.add( directionalLight );
 scene.add( ambientLight );
 scene.add( pointLight );
@@ -22,6 +22,14 @@ const mouse = new THREE.Vector2();
 const animations = {};
 
 let mixer, model, audio_element;
+
+const listener = new THREE.AudioListener();
+camera.add( listener );
+const audio = new THREE.PositionalAudio( listener );
+    audio_element = document.createElement('audio');
+    audio_element.crossOrigin = 'anonymous';
+    audio_element.src = '/stream'; // vite.config.js
+    audio_element.controls = true;
 
 loader.load( radio, function ( gltf ) {
     console.log('GLB Loaded:', gltf);
@@ -36,7 +44,13 @@ loader.load( radio, function ( gltf ) {
     loadAnimations(gltf);
     //console.log(animations);
 
-    window.addEventListener('click', onMouseClick, true);
+    //window.addEventListener('click', onMouseClick, true);
+    window.addEventListener('mousedown', onMouseDown, true);
+    window.addEventListener('mousemove', onMouseMove, true);
+    window.addEventListener('mouseup', onMouseUp, true);
+
+    audio.setMediaElementSource(audio_element); 
+    model.add( audio );
 
 }, function (loading) {
     console.log((loading.loaded / loading.total * 100) + '% loaded');
@@ -77,7 +91,11 @@ function loadAnimations(gltf) {
     });
 }
 
-function onMouseClick(event) {
+let drag = false;
+let dial = null;
+let startingX, startingY, deltaX, deltaY;
+
+function onMouseDown (event) { //click
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
@@ -90,47 +108,79 @@ function onMouseClick(event) {
         console.log('Intersected object: ', intersectedObject.name);
        if (intersectedObject.name == 'Cylinder001_2') {
             const action = animations['Power'];
-
-            const listener = new THREE.AudioListener();
-            camera.add( listener );
-            const audio = new THREE.PositionalAudio( listener );
-            audio_element = document.createElement('audio');
-            audio_element.crossOrigin = 'anonymous';
-            audio_element.src = '/stream';
-            audio_element.controls = true;
-
-            audio.setMediaElementSource(audio_element); //html element
-            audio_element.play();
-            model.add( audio );
-
-            
+        
             if(action) {
                 action.timeScale = 0.0008;
                 action.reset().setLoop(THREE.LoopOnce).play();
-                console.log('Cylinder found!', action);
-            } else {
-                console.error('Animation not found');
-            }
-        } else if (intersectedObject.name == 'Cylinder_2') {
-            const action = animations['Tuning']; //toggle
+                console.log('Turning on!', action);
 
-            if(action) {
-                action.timeScale = 0.0008;
-                action.reset().setLoop(THREE.LoopOnce).play();
-                console.log('Cylinder found!', action);
+                audio_element.addEventListener('play', () => {
+                    console.log('Audio is playing', audio_element.paused);
+                });
+
+                audio_element.addEventListener('pause', () => {
+                    console.log('Audio is paused', audio_element.paused);
+                });
+    
+                audio_element.addEventListener('error', (e) => {
+                    console.error('Error playing audio:', e);
+                });
+
+                if(!audio_element.paused) {
+                    audio_element.pause();
+                } else if (audio_element.paused) {
+                    audio_element.play();
+                }
+                
             } else {
                 console.error('Animation not found');
             }
+        } else if (intersectedObject.name == 'Cylinder001_1' || intersectedObject.name == 'Cylinder_2') {
+            drag = true;
+            dial = intersectedObject;
+            controls.enabled = false;
+
+            startingX = event.clientX;
+            startingY = event.clientY;
+        }
+    } 
+}
+
+function onMouseMove (event) {
+    if (drag && dial) {
+        const action = getAnimation(dial.name);
+        deltaX = event.clientX - startingX;
+        deltaY = event.clientY - startingY;
+
+        action.timeScale = deltaX * 0.0008;
+        if(!action.isRunning()) {
+            action.play();
+            startingX = event.clientX;
+            startingY = event.clientY;
         }
     }
 }
 
-audio_element.addEventListener('play', () => {
-    console.log('Audio is playing');
-});
+function onMouseUp (event) {
+    console.log("Clicked!")
 
-audio_element.addEventListener('error', (e) => {
-    console.error('Error playing audio:', e);
-});
+    if (drag && dial) {
+        const action = getAnimation(dial.name);
+        if (action) {
+            action.stop();
+        }
+    }
+    drag = false;
+    dial = null;
+    controls.enabled = true;
+}
 
+function getAnimation (name) {
+    switch(name) {
+        case 'Cylinder001_1':
+            return animations['Volume'];
+        case 'Cylinder_2':
+            return animations['Tuning'];
+    }
+}
 
