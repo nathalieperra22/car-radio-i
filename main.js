@@ -23,6 +23,10 @@ const animations = {};
 
 let mixer, model, audio_element;
 
+let drag = false;
+let dial = null;
+let startingX, startingY, deltaX, deltaY;
+
 const listener = new THREE.AudioListener();
 camera.add( listener );
 const audio = new THREE.PositionalAudio( listener );
@@ -30,6 +34,9 @@ const audio = new THREE.PositionalAudio( listener );
     audio_element.crossOrigin = 'anonymous';
     audio_element.src = '/stream'; // vite.config.js
     audio_element.controls = true;
+
+const audio_context = new (window.AudioContext || window.webkitAudioContext)();
+//console.log(audio_context.state);
 
 loader.load( radio, function ( gltf ) {
     console.log('GLB Loaded:', gltf);
@@ -48,6 +55,16 @@ loader.load( radio, function ( gltf ) {
     window.addEventListener('mousedown', onMouseDown, true);
     window.addEventListener('mousemove', onMouseMove, true);
     window.addEventListener('mouseup', onMouseUp, true);
+
+    audio_element.addEventListener('play', () => {
+        console.log('Audio is playing', audio_element.paused);
+    });
+    audio_element.addEventListener('pause', () => {
+        console.log('Audio is paused', audio_element.paused);
+    });
+    audio_element.addEventListener('error', (e) => {
+        console.error('Error playing audio:', e);
+    });
 
     audio.setMediaElementSource(audio_element); 
     model.add( audio );
@@ -74,7 +91,7 @@ function animate() {
 	requestAnimationFrame(animate);
      
     if (mixer) {
-        mixer.update(0.1); //adjust delta
+        mixer.update(0.1);
     }
 
 	controls.update();
@@ -91,11 +108,7 @@ function loadAnimations(gltf) {
     });
 }
 
-let drag = false;
-let dial = null;
-let startingX, startingY, deltaX, deltaY;
-
-function onMouseDown (event) { //click
+function onMouseDown (event) { 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
@@ -106,34 +119,21 @@ function onMouseDown (event) { //click
     if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
         console.log('Intersected object: ', intersectedObject.name);
+
        if (intersectedObject.name == 'Cylinder001_2') {
-            const action = animations['Power'];
-        
+            dial = intersectedObject;
+            const action = getAnimation(dial.name);
+
             if(action) {
                 action.timeScale = 0.0008;
                 action.reset().setLoop(THREE.LoopOnce).play();
                 console.log('Turning on!', action);
-
-                audio_element.addEventListener('play', () => {
-                    console.log('Audio is playing', audio_element.paused);
-                });
-
-                audio_element.addEventListener('pause', () => {
-                    console.log('Audio is paused', audio_element.paused);
-                });
-    
-                audio_element.addEventListener('error', (e) => {
-                    console.error('Error playing audio:', e);
-                });
-
+                
                 if(!audio_element.paused) {
                     audio_element.pause();
                 } else if (audio_element.paused) {
                     audio_element.play();
-                }
-                
-            } else {
-                console.error('Animation not found');
+                } 
             }
         } else if (intersectedObject.name == 'Cylinder001_1' || intersectedObject.name == 'Cylinder_2') {
             drag = true;
@@ -153,8 +153,16 @@ function onMouseMove (event) {
         deltaY = event.clientY - startingY;
 
         action.timeScale = deltaX * 0.0008;
+        //console.log(deltaX * 0.0008);
+
         if(!action.isRunning()) {
             action.play();
+            if(action._clip.name === 'Volume') {
+                //if( (deltaX < 0 && audio_element.volume+deltaX >= 0) || (deltaX > 0 && audio_element.volume+deltaX <= 1) ) {
+                //    audio_element.volume += deltaX*0.0008;
+                    console.log(audio_element.volume);
+                //}
+            }
             startingX = event.clientX;
             startingY = event.clientY;
         }
@@ -162,8 +170,6 @@ function onMouseMove (event) {
 }
 
 function onMouseUp (event) {
-    console.log("Clicked!")
-
     if (drag && dial) {
         const action = getAnimation(dial.name);
         if (action) {
@@ -181,6 +187,8 @@ function getAnimation (name) {
             return animations['Volume'];
         case 'Cylinder_2':
             return animations['Tuning'];
+        case 'Cylinder001_2':
+            return animations['Power'];
     }
 }
 
