@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/car-radio-i/',
   server: {
     proxy: {
       '/stream': {
