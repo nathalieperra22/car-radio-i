@@ -21,21 +21,24 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const animations = {};
 
-let mixer, model, audio_element;
+let mixer, model, audio_element, listener;
 
 let drag = false;
 let dial = null;
 let startingX, startingY, deltaX, deltaY;
 
-const listener = new THREE.AudioListener();
-camera.add( listener );
+//const listener = new THREE.AudioListener();
+//camera.add( listener );
+/*
 const audio = new THREE.PositionalAudio( listener );
     audio_element = document.createElement('audio');
     audio_element.crossOrigin = 'anonymous';
     audio_element.src = '/stream'; // vite.config.js
     audio_element.controls = true;
+*/
 
-const audio_context = new (window.AudioContext || window.webkitAudioContext)();
+//const audio_context = new (window.AudioContext || window.webkitAudioContext)();
+let audio_context;
 //console.log(audio_context.state);
 
 loader.load( radio, function ( gltf ) {
@@ -57,7 +60,7 @@ loader.load( radio, function ( gltf ) {
     window.addEventListener('mouseup', onMouseUp, true);
 
     audio_element.addEventListener('play', () => {
-        console.log('Audio is playing', audio_element.paused);
+        console.log('Audio is playing', audio_element.paused, );
     });
     audio_element.addEventListener('pause', () => {
         console.log('Audio is paused', audio_element.paused);
@@ -129,11 +132,29 @@ function onMouseDown (event) {
                 action.reset().setLoop(THREE.LoopOnce).play();
                 console.log('Turning on!', action);
                 
-                if(!audio_element.paused) {
-                    audio_element.pause();
-                } else if (audio_element.paused) {
-                    audio_element.play();
-                } 
+                if (!audio_context) {
+                    audio_context = new (window.AudioContext || window.webkitAudioContext)();
+                    listener = new THREE.AudioListener();
+                    camera.add( listener );
+                    const audio = new THREE.PositionalAudio( listener );
+                    audio_element = document.createElement('audio');
+                    audio_element.crossOrigin = 'anonymous';
+                    audio_element.src = '/stream'; // vite.config.js
+                    audio_element.controls = true;
+                }
+            
+                audio_context.resume().then(() => {
+                    console.log('Audio Context resumed');
+            
+                    // Play or pause the audio based on its current state
+                    if (!audio_element.paused) {
+                        audio_element.pause();
+                    } else {
+                        audio_element.play();
+                    }
+                }).catch(err => {
+                    console.error('Failed to resume audio context:', err);
+                });
             }
         } else if (intersectedObject.name == 'Cylinder001_1' || intersectedObject.name == 'Cylinder_2') {
             drag = true;
