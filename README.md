@@ -9,3 +9,5 @@ Added the model to a scene with lighting and incorporated animations: sound upon
 <img width="717" alt="Screenshot 2024-08-18 at 10 55 18 PM" src="https://github.com/user-attachments/assets/867b0993-245c-4608-b9a4-d0a82b113da9">
 
 <img width="716" alt="Screenshot 2024-08-18 at 10 55 39 PM" src="https://github.com/user-attachments/assets/e2be2150-a13e-4387-8331-16f544344e7c">
+
+Interactive link: https://nathalieperra22.github.io/car-radio-i/
