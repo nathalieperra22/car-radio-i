@@ -40,6 +40,10 @@ const audio = new THREE.PositionalAudio( listener );
 //const audio_context = new (window.AudioContext || window.webkitAudioContext)();
 let audio_context;
 //console.log(audio_context.state);
+const streamUrl = import.meta.env.DEV 
+  ? '/stream' //for dev: proxy
+  : 'http://www.ednixon.com:8120/stream'; //direct 
+
 
 loader.load( radio, function ( gltf ) {
     console.log('GLB Loaded:', gltf);
