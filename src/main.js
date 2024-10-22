@@ -40,7 +40,7 @@ const audio = new THREE.PositionalAudio( listener );
 //const audio_context = new (window.AudioContext || window.webkitAudioContext)();
 let audio_context;
 //console.log(audio_context.state);
-const streamUrl = import.meta.env.DEV 
+const streamURL = import.meta.env.DEV 
   ? '/stream' //for dev: proxy
   : 'http://www.ednixon.com:8120/stream'; //direct 
 
@@ -143,7 +143,7 @@ function onMouseDown (event) {
                     const audio = new THREE.PositionalAudio( listener );
                     audio_element = document.createElement('audio');
                     audio_element.crossOrigin = 'anonymous';
-                    audio_element.src = '/stream'; // vite.config.js
+                    audio_element.src = streamURL; // vite.config.js
                     audio_element.controls = true;
                 }
             
