@@ -40,7 +40,7 @@ const audio = new THREE.PositionalAudio( listener );
 //const audio_context = new (window.AudioContext || window.webkitAudioContext)();
 let audio_context;
 //console.log(audio_context.state);
-const streamURL = import.meta.env.DEV 
+const streamURL = import.meta.env.NODE_ENV === 'development'
   ? '/stream' //for dev: proxy
   : 'https://securestreams4.autopo.st:1643/stream'; //http://www.ednixon.com:8120/stream'; //direct 
 
