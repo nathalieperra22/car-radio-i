@@ -172,6 +172,27 @@ function onMouseDown (event) {
 }
 
 function onMouseMove (event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObject(model, true);
+
+    if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        console.log('Intersected object: ', intersectedObject.name);
+
+        if (intersectedObject.name == 'Cylinder001_2') {
+            document.getElementById('item2').innerHTML = 'click power button to turn on / off';
+        } else if (intersectedObject.name == 'Cylinder001_1') {
+            document.getElementById('item2').innerHTML = 'click and drag dial to adjust volume';
+        } else if (intersectedObject.name == 'Cylinder_2') {
+            document.getElementById('item2').innerHTML = 'click and drag dial to tune';
+        } else {
+            document.getElementById('item2').innerHTML = '';
+        }
+    }
+
     if (drag && dial) {
         const action = getAnimation(dial.name);
         deltaX = event.clientX - startingX;
