@@ -42,7 +42,7 @@ let audio_context;
 //console.log(audio_context.state);
 const streamURL = import.meta.env.DEV 
   ? '/stream' //for dev: proxy
-  : 'http://www.ednixon.com:8120/stream'; //direct 
+  : 'https://securestreams4.autopo.st:1643/stream'; //http://www.ednixon.com:8120/stream'; //direct 
 
 
 loader.load( radio, function ( gltf ) {

@@ -5,7 +5,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/stream': {
-        target: 'http://www.ednixon.com:8120/stream', 
+        target: 'https://securestreams4.autopo.st:1643/stream', 
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/stream/, ''),
       },
